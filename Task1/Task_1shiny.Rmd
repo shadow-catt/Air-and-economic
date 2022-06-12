@@ -1,0 +1,154 @@
+---
+title: "Task_1"
+output: html_document
+---
+
+
+# Task 1: Pollutants in the air in the United States
+
+### Picture 1: Air Quality ternds show clean air progress
+
+Emissions of key air pollutants continue to decline from 1990 levels:
+
+* Carbon Monoxide (CO) **decrease 70%**
+* Ammonia (NH3) **decrease  8%**
+* Nitrogen Oxides (NOx) **decrease 68%**
+* Direct Particulate Matter 2.5 microns (PM2.5) **decrease 38%**
+* Direct Particulate Matter 10 microns (PM10) **decrease 31%**
+* Sulfur Dioxide (SO2) **decrease 92%**
+* Volatile Organic Compounds (VOC) **decrease 48%**
+
+### picture 2: Emission Sources Helps Control Air Pollution
+
+Generally, emissions of air pollution come from
+
+* stationary fuel combustion sources (like: electric utilities, industrial boilers)
+* industrial and other processes (like: metal smelters, petroleum refineries, cement kilns and dry cleaners)
+* highway vehicles
+* non-road mobile sources (like: marine vessels, aircraft and locomotives)
+As the chart shows, pollutants are emitted by a variety of sources. 
+
+```{r}
+library(shiny)
+library(readr)
+library(highcharter)
+library(dplyr)
+data <- read_csv("naaqs-emissions-totals-data.csv")
+new_data <- read_csv("new.csv")
+plotdata<-data
+# Define UI for app that draws a histogram ----
+ui <- fluidPage(
+
+  # App title ----
+  # titlePanel("Economic and pollutant emissions"),
+
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+        h3(strong("Variable introduction")),
+        h4(strong("Plot 1 & Plot 2:")),
+        br(strong("CO"),": Carbon Monoxide"),
+        br(strong("NH3"),": Ammonia"),
+        br(strong("NOx"),": Nitrogen Oxides"),
+        br(strong("PM2.5"),": Direct Particulate Matter 2.5 microns"),
+        br(strong("PM10"),": Direct Particulate Matter 10 microns"),
+        br(strong("SO2"),": Sulfur Dioxide"),
+        br(strong("VOC"),": Volatile Organic Compounds"),
+        br(),
+        br(),
+        h4(strong("Plot 2:")),
+        br(strong("Highway Vehicles"),": car..."),
+        br(strong("Industrial and other process"),": metal smelters, petroleum refineries, cement kilns and dry cleaners..."),
+        br(strong("Non-Road Mobile"),": marine vessels, aircraft and locomotives..."),
+        br(strong("Stationary Fuel Combustion"),": electric utilities, industrial boilers...")
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      h2("Air Quality ternds show clean air progress"),
+      p("Emissions of key air pollutants continue to decline from 1990 levels:"),
+      br(),
+      p("Carbon Monoxide (CO) decrease 70%;"),
+      br(),
+      p("Ammonia (NH3) decrease  8%;"),
+      br(),
+      p("Nitrogen Oxides (NOx) decrease 68%;"),
+      br(),
+      p("Direct Particulate Matter 2.5 microns (PM2.5) decrease 38%;"),
+      br(),
+      p("Direct Particulate Matter 10 microns (PM10) decrease 31%;"),
+      br(),
+      p("Sulfur Dioxide (SO2) decrease 92%;"),
+      br(),
+      p("Volatile Organic Compounds (VOC) decrease 48%;"),
+      br(),
+      highchartOutput("LinePlot"),
+      
+      h2("American National Emissions By Source Category"),
+      p("Generally, emissions of air pollution come from: stationary fuel combustion sources (like: electric utilities, industrial boilers), industrial and other processes (like: metal smelters, petroleum refineries, cement kilns and dry cleaners), highway vehicles, non-road mobile sources (like: marine vessels, aircraft and locomotives) "),
+      br(),
+      p("As the chart shows, pollutants are emitted by a variety of sources."),
+      highchartOutput("percent_hist")
+    )
+  )
+)
+```
+
+
+```{r}
+# Define server logic required to draw a histogram ----
+server <- function(input, output) {
+  # Declining National Air Pollutant Concentration Averages
+  # plot a line chart with Double ordinate to show the American declining national air pollutant emissions
+    output$LinePlot <- renderHighchart({
+      highchart() %>%
+      hc_title(text = 'American Declining National Air Pollutant Emissions')%>%
+      hc_subtitle(text = "1990 — 2020",
+                  style = list(color = "#2b908f", 
+                               fontWeight = "bold")) %>% 
+      hc_xAxis(categories = plotdata$year)%>%
+      hc_yAxis_multiples(
+      list(lineWidth = 3,
+           title = list(text = "Emissions Excluding CO (Million Tons)")),
+      list(showLastLabel = FALSE, opposite = TRUE,
+           title = list(text = "CO Emissions (Million Tons)"))
+      ) %>% 
+      hc_add_series(name = "CO", 
+                      data = plotdata$CO,type = "spline", yAxis = 1)%>%
+      hc_add_series(name = "NH3", 
+                      data = plotdata$NH3,type = "spline")%>%
+      hc_add_series(name = "NOx", 
+                      data = plotdata$NOx,type = "spline")%>%
+      hc_add_series(name = "Direct PM2.5", 
+                      data = plotdata$'Direct PM2.5',type = "spline")%>%
+      hc_add_series(name = "Direct PM10", 
+                      data = plotdata$'Direct PM10',type = "spline")%>%
+      hc_add_series(name = "SO2", 
+                      data = plotdata$SO2,type = "spline")%>%
+      hc_add_series(name = "VOC", 
+                      data = plotdata$VOC,type = "spline") %>%
+      hc_tooltip(table = TRUE,
+                  sort = TRUE,
+                  pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',"     <b>{series.name}:</b> {point.y} Million Tons"),
+                  headerFormat = '<span style="font-size: 13px"><b>Year:</b> {point.key}</span>')
+    })
+  
+  # A bar chart to show American national emissions by source category
+  # National Emissions by source category
+  output$percent_hist <- renderHighchart({
+    hchart(new_data,"column",hcaes(x= "Categories",y = "value",group = "target")) %>%  
+    hc_plotOptions(column= list(stacking = "percent"))%>%
+    hc_title(text = 'American National Emissions By Source Category')%>%
+      hc_yAxis_multiples(
+      list(lineWidth = 3,
+          title = list(text = "Emissions (%)")))%>%
+    hc_xAxis(title = list(text = " "))
+  })
+}
+```
+
+```{r}
+shinyApp(ui = ui, server = server)
+```

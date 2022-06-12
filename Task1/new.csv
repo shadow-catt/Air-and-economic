@@ -1,0 +1,29 @@
+﻿Categories,value,target
+CO,9.295845419,Stationary Fuel Combustion
+CO,27.83043647,Industrial and Other Processes
+CO,36.98695841,Highway Vehicles
+CO,25.8867597,Non-Road Mobile
+NH3,2.267002519,Stationary Fuel Combustion
+NH3,95.36523929,Industrial and Other Processes
+NH3,2.317380353,Highway Vehicles
+NH3,0.050377834,Non-Road Mobile
+NOx,29.19844942,Stationary Fuel Combustion
+NOx,16.48118044,Industrial and Other Processes
+NOx,30.17381518,Highway Vehicles
+NOx,24.14655496,Non-Road Mobile
+Direct PM2.5,45.27911785,Stationary Fuel Combustion
+Direct PM2.5,40.66161268,Industrial and Other Processes
+Direct PM2.5,6.202618884,Highway Vehicles
+Direct PM2.5,7.856650586,Non-Road Mobile
+Direct PM10,33.69418133,Stationary Fuel Combustion
+Direct PM10,51.05999098,Industrial and Other Processes
+Direct PM10,9.742895805,Highway Vehicles
+Direct PM10,5.50293189,Non-Road Mobile
+SO2,67.81609195,Stationary Fuel Combustion
+SO2,29.83032293,Industrial and Other Processes
+SO2,0.8757526,Highway Vehicles
+SO2,1.477832512,Non-Road Mobile
+VOC,4.19644341,Stationary Fuel Combustion
+VOC,75.56922054,Industrial and Other Processes
+VOC,11.44257936,Highway Vehicles
+VOC,8.791756689,Non-Road Mobile

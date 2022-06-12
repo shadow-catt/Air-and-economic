@@ -1,0 +1,177 @@
+---
+title: "Task2_add"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task2
+
+# UI
+```{r}
+library(shiny)
+library(readr)
+library(highcharter)
+library(dplyr)
+library(heatmaply)
+library(plotly)
+data <- read_csv("growth_chart_data.csv")
+data_new <- read_csv("growth_chart_data_new.csv")
+plotdata<-data
+# Define UI for app that draws a histogram ----
+ui <- fluidPage(
+
+  # App title ----
+  # titlePanel("Economic and pollutant emissions"),
+
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+        h3(strong("Variable introduction")),
+        br(strong("Year"),": The time when the value is record"),
+        br(strong("GDP"),": Change rate of Gross Domestic Product comparing to 1970"),
+        br(strong("Population"),": Change rate of population comparing to 1970"),
+        br(strong("VehicleTraveled"),": Change rate of the Vehicles Miles Traveled"),
+        br(strong("EnergyConsumption"),": Change rate of the energy consumption"),
+        br(strong("CO2Emssions"),": Change rate of CO2 emssions"),
+        br(strong("AggregateEmissions"),": Change rate of the aggregate emissions, which contain PM2.5, PM10, SO2,NOx,VOCs,CO and Pb")
+    ),
+
+    # Main panel for displaying outputs ----
+    mainPanel(
+      h2("Economic Strength with Cleaner Air"),
+      p("Between 1970 and 2020, the combined emissions of the six common pollutants (PM2.5 and PM10, SO2, NOx, VOCs, CO and Pb) dropped by 78 percent. This progress occurred while U.S. economic indicators remain strong. And the following are the output for each indicators"),
+      br(),
+      highchartOutput("LinePlot"),
+      br(),
+      p("After we seeing the graph above, we notice that there maybe some relations between each of the indicators, thus we make a corrlation plot for better understanding their relationships"),
+      plotlyOutput("corr_plot"),
+      br(),
+      p("The Gross Domestic Product have strong relationship with the Aggregate Emissions, we make a usage for the bubble chart to display it more clearly"),
+      br(),
+      h3("Relationship between Aggregate Emissions and the GDP"),
+      br(strong("Size: Aggregate Emissions")),
+      br(strong("Color: Aggregate Emissions")),
+      plotlyOutput("bubble"),
+      br()
+    )
+  )
+)
+```
+
+# Server
+```{r}
+# Define server logic required to draw a histogram ----
+server <- function(input, output) {
+  # line chart for the change of he economic and the emissions
+  output$LinePlot <- renderHighchart({
+    highchart() %>%
+    # title
+    hc_title(text = 'Declining National Air Pollutant Emissions')%>%
+    hc_subtitle(text = "1970 to 2020",
+                style = list(color = "#2b908f", 
+                             fontWeight = "bold")) %>% 
+    # axis
+    hc_xAxis(categories = plotdata$year)%>%
+    hc_yAxis(title = list(text = "Percent Change (%)"),plotLines = list(
+      list(
+        label = list(text = ""),
+        dashstyle = "Dash",
+        value = 0,
+        width = 2
+        #color = "blue"
+      )
+    ))%>%
+    # display legend
+    hc_legend(align = "right", 
+              verticalAlign = "top",
+              layout = "vertical", 
+              x = 180, 
+              y = 200) %>%
+    # append data
+    hc_add_series(name = "Gross Domestic Product", 
+                  data = plotdata$'Gross Domestic Product', color='blue',type = "spline",marker = list(symbol = 'circle'))%>%
+    hc_add_series(name = "Vehicle Miles Traveled", 
+                  data = plotdata$'Vehicle Miles Traveled', color='blue',type = "spline",marker = list(symbol = 'circle'))%>%
+    hc_add_series(name = "Population", 
+                  data = plotdata$'Population',type = "spline", color='green',marker = list(symbol = 'circle'))%>%
+    hc_add_series(name = "Energy Consumption", 
+                  data = plotdata$'Energy Consumption', color='green',type = "spline",marker = list(symbol = 'circle'))%>%
+    hc_add_series(name = "CO2 Emissions", 
+                  data = plotdata$'CO2 Emissions', color='green',type = "spline",marker = list(symbol = 'triangle'))%>%
+    hc_add_series(name = "Aggregate Emissions (Six Common Pollutants)", 
+                  data = plotdata$'Aggregate Emissions (Six Common Pollutants)', color='red',type = "spline",marker = list(symbol = 'triangle')) %>%
+    
+    #label display
+    hc_tooltip(table = TRUE,
+              sort = TRUE,
+              shared = TRUE,
+              crosshairs = TRUE,
+              pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>'," <b>{series.name}:</b> {point.y}%"),
+              headerFormat = '<span style="font-size: 13px"><b>Index:</b> {point.key}</span>') 
+    })
+  
+  # display the relationship between GDP and Aggregate Emissions
+  output$bubble <-  renderPlotly({
+    plot_ly(data, 
+               # adding the position of the point
+               x = ~year, 
+               y = data$"Gross Domestic Product",
+               type = 'scatter', 
+               mode = 'markers',
+               # setting the emissions as the color criteria
+               color=data$'Aggregate Emissions (Six Common Pollutants)',
+               name = "Emissions",
+               # colors = 'Greens',
+               # also setting emissions as the size criteria
+               marker = list(name = "Emission",
+                            size = data$radius*80, 
+                            opacity = 0.5,
+                            symbol = 'circle', 
+                            sizemode = 'diameter',
+                            # boundary of the circle
+                            line = list(width = 1, color = '#FFFFFF')
+                            ),
+              # adding text when select a point
+              text = ~paste('Year:', data$year, 
+                            '<br>Gross Domestic Product change (%):', data$'Gross Domestic Product',
+                            '<br>Aggregate Emissions (Six Common Pollutants) change:', data$'Aggregate Emissions (Six Common Pollutants)')) %>% 
+              # the title and the name of y and x axis 
+              layout(#title = 'GDP and Emission relationship',
+                    xaxis = list(title = 'Year',
+                                # range = c(2.003297660701705, 5.191505530708712),
+                                type = 'log',
+                                zerolinewidth = 1,
+                                ticklen = 5,
+                                gridwidth = 2),
+                    yaxis = list(title = 'GDP change rate (%)(compare with 1970)',
+                                # range = c(36.12621671352166, 91.72921793264332),
+                                zerolinewidth = 1,
+                                ticklen = 5,
+                                gridwith = 2)
+              )
+  })
+  
+  
+  # correlation between each variables
+  output$corr_plot <-  renderPlotly({
+    heatmaply_cor(
+      cor(data_new[-29,]),
+      #xlab = "Features",
+      #ylab = "Features",
+      k_col = 2,
+      k_row = 2,
+      main = "Correlation plot between each rate",
+      )
+  })
+  
+}
+```
+
+```{r}
+shinyApp(ui = ui, server = server)
+```

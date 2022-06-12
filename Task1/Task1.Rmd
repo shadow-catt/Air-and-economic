@@ -1,0 +1,105 @@
+---
+title: "Task1_1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Task 1: Pollutants in the air in the United States
+
+### 1_1: Air Quality ternds show clean air progress
+
+Emissions of key air pollutants continue to decline from 1990 levels:
+
+* Carbon Monoxide (CO) **decrease 70%**
+* Ammonia (NH3) **decrease  8%**
+* Nitrogen Oxides (NOx) **decrease 68%**
+* Direct Particulate Matter 2.5 microns (PM2.5) **decrease 38%**
+* Direct Particulate Matter 10 microns (PM10) **decrease 31%**
+* Sulfur Dioxide (SO2) **decrease 92%**
+* Volatile Organic Compounds (VOC) **decrease 48%**
+
+```{R}
+library(readr)
+library(highcharter)
+library(dplyr)
+```
+
+```{R}
+# Load the data
+data <- read_csv("naaqs-emissions-totals-data.csv")
+data
+```
+
+
+```{R}
+# Declining National Air Pollutant Concentration Averages
+# plot a line chart with Double ordinate to show the American declining national air pollutant emissions
+plotdata<-data
+linechart <-highchart() %>%
+  hc_title(text = 'American Declining National Air Pollutant Emissions')%>%
+  hc_subtitle(text = "1990 — 2020",
+              style = list(color = "#2b908f", 
+                           fontWeight = "bold")) %>% 
+  hc_xAxis(categories = plotdata$year)%>%
+  hc_yAxis_multiples(
+    list(lineWidth = 3,
+         title = list(text = "Emissions Excluding CO (Million Tons)")),
+    list(showLastLabel = FALSE, opposite = TRUE,
+         title = list(text = "CO Emissions (Million Tons)"))
+  ) %>% 
+hc_add_series(name = "CO", 
+                data = plotdata$CO,type = "spline", yAxis = 1)%>%
+hc_add_series(name = "NH3", 
+                data = plotdata$NH3,type = "spline")%>%
+hc_add_series(name = "NOx", 
+                data = plotdata$NOx,type = "spline")%>%
+hc_add_series(name = "Direct PM2.5", 
+                data = plotdata$'Direct PM2.5',type = "spline")%>%
+hc_add_series(name = "Direct PM10", 
+                data = plotdata$'Direct PM10',type = "spline")%>%
+hc_add_series(name = "SO2", 
+                data = plotdata$SO2,type = "spline")%>%
+hc_add_series(name = "VOC", 
+                data = plotdata$VOC,type = "spline") %>%
+hc_tooltip(table = TRUE,
+            sort = TRUE,
+            pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',"     <b>{series.name}:</b> {point.y} Million Tons"),
+            headerFormat = '<span style="font-size: 13px"><b>Year:</b> {point.key}</span>') 
+linechart
+```
+
+### 1_2: Emission Sources Helps Control Air Pollution
+
+
+
+Generally, emissions of air pollution come from
+
+* stationary fuel combustion sources (like: electric utilities, industrial boilers)
+* industrial and other processes (like: metal smelters, petroleum refineries, cement kilns and dry cleaners)
+* highway vehicles
+* non-road mobile sources (like: marine vessels, aircraft and locomotives)
+As the chart shows, pollutants are emitted by a variety of sources. 
+
+```{R}
+# Load the data
+library(readr)
+library(highcharter)
+#data <- read_csv("naaqs-emissions-categories-data.csv")
+new_data <- read_csv("new.csv")
+new_data
+```
+
+
+```{R}
+# A bar chart to show American national emissions by source category
+# National Emissions by source category
+hchart(new_data,"column",hcaes(x= "Categories",y = "value",group = "target")) %>%  
+  hc_plotOptions(column= list(stacking = "percent"))%>%
+  hc_title(text = 'American National Emissions By Source Category')%>%
+    hc_yAxis_multiples(
+    list(lineWidth = 3,
+         title = list(text = "Emissions (%)")))%>%
+  hc_xAxis(title = list(text = " "))
+```

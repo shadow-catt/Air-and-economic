@@ -1,0 +1,126 @@
+---
+title: "P2_function"
+author: "Justin"
+date: "2022/5/17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#library(readr)
+data <- read_csv("growth_chart_data.csv")
+data_new <- read_csv("growth_chart_data_new.csv")
+data
+```
+
+```{r}
+# line chart for the change of he economic and the emissions
+library(highcharter)
+library(dplyr)
+plotdata<-data
+linechart <-highchart() %>%
+  # title
+  hc_title(text = 'Declining National Air Pollutant Emissions')%>%
+  hc_subtitle(text = "1970 to 2020",
+              style = list(color = "#2b908f", 
+                           fontWeight = "bold")) %>% 
+  # axis
+  hc_xAxis(categories = plotdata$year)%>%
+  hc_yAxis(title = list(text = "Percent Change (%)"),plotLines = list(
+    list(
+      label = list(text = ""),
+      dashstyle = "Dash",
+      value = 0,
+      width = 2
+      #color = "blue"
+    )
+  ))%>%
+  # display legend
+  hc_legend(align = "right", 
+            verticalAlign = "top",
+            layout = "vertical", 
+            x = 180, 
+            y = 200) %>%
+  # append data
+  hc_add_series(name = "Gross Domestic Product", 
+                data = plotdata$'Gross Domestic Product',type = "spline")%>%
+  hc_add_series(name = "Vehicle Miles Traveled", 
+                data = plotdata$'Vehicle Miles Traveled',type = "spline")%>%
+  hc_add_series(name = "Population", 
+                data = plotdata$'Population',type = "spline")%>%
+  hc_add_series(name = "Energy Consumption", 
+                data = plotdata$'Energy Consumption',type = "spline")%>%
+  hc_add_series(name = "CO2 Emissions", 
+                data = plotdata$'CO2 Emissions',type = "spline")%>%
+  hc_add_series(name = "Aggregate Emissions (Six Common Pollutants)", 
+                data = plotdata$'Aggregate Emissions (Six Common Pollutants)',type = "spline") %>%
+  #label display
+  hc_tooltip(table = TRUE,
+            sort = TRUE,
+            pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>'," <b>{series.name}:</b> {point.y}%"),
+            headerFormat = '<span style="font-size: 13px"><b>Index:</b> {point.key}</span>') 
+linechart
+```
+
+```{r}
+# correlation between each variables
+library(heatmaply)
+heatmaply_cor(
+  cor(data_new[-29,]),
+  #xlab = "Features",
+  #ylab = "Features",
+  k_col = 2,
+  k_row = 2,
+  main = "Correlation plot between each rate",
+)
+```
+
+
+```{r}
+# display the relationship between GDP and Aggregate Emissions
+library(plotly)
+
+fig <- plot_ly(data, 
+               # adding the position of the point
+               x = ~year, 
+               y = data$"Gross Domestic Product",
+               type = 'scatter', 
+               mode = 'markers',
+               # setting the emissions as the color criteria
+               color=data$'Aggregate Emissions (Six Common Pollutants)',
+               name = "Emissions",
+               # colors = 'Greens',
+               # also setting emissions as the size criteria
+               marker = list(name = "Emission",
+                            size = data$radius*80, 
+                            opacity = 0.5,
+                            symbol = 'circle', 
+                            sizemode = 'diameter',
+                            # boundary of the circle
+                            line = list(width = 1, color = '#FFFFFF')
+                            ),
+              # adding text when select a point
+              text = ~paste('Year:', data$year, 
+                            '<br>Gross Domestic Product change (%):', data$'Gross Domestic Product',
+                            '<br>Aggregate Emissions (Six Common Pollutants) change:', data$'Aggregate Emissions (Six Common Pollutants)')) %>% 
+              # the title and the name of y and x axis 
+              layout(title = 'GDP and Emission relationship',
+                     subtitle = "bit",
+                    xaxis = list(title = 'Year',
+                                # range = c(2.003297660701705, 5.191505530708712),
+                                type = 'log',
+                                zerolinewidth = 1,
+                                ticklen = 5,
+                                gridwidth = 2),
+                    yaxis = list(title = 'GDP change rate (%)(compare with 1970)',
+                                # range = c(36.12621671352166, 91.72921793264332),
+                                zerolinewidth = 1,
+                                ticklen = 5,
+                                gridwith = 2)
+              )
+              
+fig
+```
